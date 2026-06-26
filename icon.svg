@@ -18,5 +18,5 @@
   <circle cx="256" cy="220" r="60" fill="white"/>
   <path d="M228 220 L248 240 L288 196" stroke="#c41e3a" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   <!-- Heart on top of roof -->
-  <path d="M256 95 C243 78 218 78 210 95 C202 112 210 132 256 158 C302 132 310 112 302 95 C294 78 269 78 256 95Z" fill="white" opacity="0.95"/>
+  <path d="M256 95 C243 78 218 78 210 95 C202 112 210 132 256 158 C302 132 310 112 302 95 C294 78 269 78 256 95Z" fill="#e31c3d" opacity="0.95"/>
 </svg>
