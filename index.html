@@ -175,6 +175,48 @@
   }
   .badge-bought { background: var(--green-light); color: var(--green); }
   .badge-wishlist { background: var(--orange-light); color: var(--orange); }
+  .badge-nina { background: #fce4ec; color: #c62828; }
+  .badge-kay { background: #e3f2fd; color: #1565c0; }
+  .person-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .person-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px 20px 8px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .person-tab {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .person-tab.active-nina {
+    border-color: #c62828;
+    color: #c62828;
+    background: #fce4ec;
+  }
+  .person-tab.active-kay {
+    border-color: #1565c0;
+    color: #1565c0;
+    background: #e3f2fd;
+  }
+  .person-tab.active-all {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+  }
   .item-delete {
     background: none;
     border: none;
@@ -300,6 +342,7 @@
 </div>
 
 <div class="tabs" id="tabs"></div>
+<div class="person-tabs" id="person-tabs"></div>
 
 <div class="content">
   <div class="filter-row" id="filter-row"></div>
@@ -321,6 +364,13 @@
       <div class="form-group">
         <label>Categorie</label>
         <select id="input-category"></select>
+      </div>
+      <div class="form-group">
+        <label>Toegevoegd door</label>
+        <select id="input-person">
+          <option value="nina">Nina</option>
+          <option value="kay">Kay</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Prijs (optioneel)</label>
@@ -367,6 +417,7 @@ var CATEGORIES = [
 var items = [];
 var activeCategory = 'alle';
 var activeFilter = 'alle';
+var activePerson = 'alle';
 var editingKey = null;
 
 function getCategoryById(id) {
@@ -381,6 +432,7 @@ function getFilteredItems() {
     if (activeCategory !== 'alle' && item.category !== activeCategory) return false;
     if (activeFilter === 'gekocht' && !item.bought) return false;
     if (activeFilter === 'nodig' && item.bought) return false;
+    if (activePerson !== 'alle' && (item.person || 'nina') !== activePerson) return false;
     return true;
   });
 }
@@ -473,10 +525,13 @@ function renderItems() {
 
     var info = document.createElement('div');
     info.className = 'item-info';
+    var personName = (item.person || 'nina') === 'nina' ? 'Nina' : 'Kay';
+    var personClass = (item.person || 'nina') === 'nina' ? 'badge-nina' : 'badge-kay';
     info.innerHTML =
       '<div class="item-name' + (item.bought ? ' bought' : '') + '">' + escapeHtml(item.name) + '</div>' +
       (item.notes ? '<div class="item-meta">' + escapeHtml(item.notes) + '</div>' : '') +
-      '<div class="item-meta">' + cat.icon + ' ' + cat.name + (item.price ? ' · €' + escapeHtml(item.price) : '') + '</div>';
+      '<div class="item-meta">' + cat.icon + ' ' + cat.name + (item.price ? ' · €' + escapeHtml(item.price) : '') + '</div>' +
+      '<span class="person-badge ' + personClass + '">' + personName + '</span>';
     info.addEventListener('click', function() { openEditModal(item); });
 
     var badge = document.createElement('span');
@@ -498,9 +553,30 @@ function renderItems() {
   });
 }
 
+function renderPersonTabs() {
+  var container = document.getElementById('person-tabs');
+  container.innerHTML = '';
+  var tabs = [
+    { id: 'alle', label: 'Iedereen', cls: 'active-all' },
+    { id: 'nina', label: 'Nina', cls: 'active-nina' },
+    { id: 'kay', label: 'Kay', cls: 'active-kay' }
+  ];
+  tabs.forEach(function(t) {
+    var btn = document.createElement('button');
+    btn.className = 'person-tab' + (activePerson === t.id ? ' ' + t.cls : '');
+    btn.textContent = t.label;
+    btn.addEventListener('click', function() {
+      activePerson = t.id;
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
 function render() {
   renderStats();
   renderTabs();
+  renderPersonTabs();
   renderFilters();
   renderItems();
 }
@@ -511,6 +587,7 @@ function openAddModal() {
   document.getElementById('btn-save').textContent = 'Toevoegen';
   document.getElementById('input-name').value = '';
   document.getElementById('input-category').value = activeCategory !== 'alle' ? activeCategory : 'keuken';
+  document.getElementById('input-person').value = 'nina';
   document.getElementById('input-price').value = '';
   document.getElementById('input-notes').value = '';
   document.getElementById('modal-overlay').classList.remove('hidden');
@@ -523,6 +600,7 @@ function openEditModal(item) {
   document.getElementById('btn-save').textContent = 'Opslaan';
   document.getElementById('input-name').value = item.name;
   document.getElementById('input-category').value = item.category;
+  document.getElementById('input-person').value = item.person || 'nina';
   document.getElementById('input-price').value = item.price || '';
   document.getElementById('input-notes').value = item.notes || '';
   document.getElementById('modal-overlay').classList.remove('hidden');
@@ -561,6 +639,7 @@ document.getElementById('item-form').addEventListener('submit', function(e) {
   var data = {
     name: name,
     category: document.getElementById('input-category').value,
+    person: document.getElementById('input-person').value,
     price: document.getElementById('input-price').value.trim(),
     notes: document.getElementById('input-notes').value.trim(),
     bought: false
